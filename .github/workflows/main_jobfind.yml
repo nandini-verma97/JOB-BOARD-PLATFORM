@@ -14,7 +14,7 @@ jobs:
       id-token: write
 
     steps:
-      # 1. Checkout repo
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -34,12 +34,12 @@ jobs:
         run: npm run build
         working-directory: ./FRONTEND
 
-      # 5. Clean previous frontend copy in backend
-      - name: Clean previous frontend
+      # 5. Clean old frontend folder in backend
+      - name: Clean old frontend
         run: rm -rf BACKEND/frontend
 
-      # 6. Copy new frontend build into backend
-      - name: Copy frontend build into backend
+      # 6. Copy frontend build into backend
+      - name: Copy frontend build
         run: cp -r FRONTEND/dist BACKEND/frontend
 
       # 7. Install backend dependencies
