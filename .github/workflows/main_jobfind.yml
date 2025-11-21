@@ -20,23 +20,23 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm install
-        working-directory: ./client
+        working-directory: ./FRONTEND
 
-      - name: Build app
+      - name: Build frontend
         run: npm run build --if-present
-        working-directory: ./client
+        working-directory: ./FRONTEND
 
-      - name: Run tests
+      - name: Run frontend tests
         run: npm test --if-present
-        working-directory: ./client
+        working-directory: ./FRONTEND
 
-      - name: Upload artifact for deployment
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: ./client/build   # upload build folder only
+          name: frontend-build
+          path: ./FRONTEND/build   # React build folder
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,14 +46,14 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: frontend-build
 
-      - name: Zip files for deployment
+      - name: Zip build files
         run: zip -r app.zip ./*
-        working-directory: ./client/build
+        working-directory: ./FRONTEND/build
 
       - name: Login to Azure
         uses: azure/login@v2
