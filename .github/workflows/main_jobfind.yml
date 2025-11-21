@@ -34,19 +34,20 @@ jobs:
         run: npm run build
         working-directory: ./FRONTEND
 
-      # 5. Copy frontend build into backend folder
-      - name: Copy frontend build into backend
-        run: |
-          rm -rf BACKEND/frontend
-          mkdir -p BACKEND/frontend
-          cp -r FRONTEND/dist/* BACKEND/frontend/
+      # 5. Clean previous frontend copy in backend
+      - name: Clean previous frontend
+        run: rm -rf BACKEND/frontend
 
-      # 6. Install backend dependencies
+      # 6. Copy new frontend build into backend
+      - name: Copy frontend build into backend
+        run: cp -r FRONTEND/dist BACKEND/frontend
+
+      # 7. Install backend dependencies
       - name: Install backend dependencies
         run: npm ci
         working-directory: ./BACKEND
 
-      # 7. Login to Azure
+      # 8. Login to Azure
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -54,7 +55,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E622A02AFAEE48F2AF32264D9B5F2E5D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9E5A11EF25FD4FBFA317489A001FF0F4 }}
 
-      # 8. Deploy backend (with frontend) to Azure
+      # 9. Deploy backend (with frontend) to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
