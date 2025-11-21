@@ -14,11 +14,11 @@ jobs:
       id-token: write
 
     steps:
-      # 1. Checkout repo
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -29,19 +29,12 @@ jobs:
         run: npm ci
         working-directory: ./FRONTEND
 
-      # 4. Build the frontend
+      # 4. Build frontend
       - name: Build frontend
         run: npm run build
         working-directory: ./FRONTEND
 
-      # 5. Zip only the dist folder
-      - name: Zip build folder
-        run: |
-          rm -f app.zip        # remove old zip if exists
-          zip -r app.zip ./*
-        working-directory: ./FRONTEND/dist
-
-      # 6. Login to Azure
+      # 5. Login to Azure
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -49,10 +42,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E622A02AFAEE48F2AF32264D9B5F2E5D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9E5A11EF25FD4FBFA317489A001FF0F4 }}
 
-      # 7. Deploy to Azure Web App
+      # 6. Deploy dist folder directly to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'JobFind'
           slot-name: 'Production'
-          package: ./app.zip
+          package: ./FRONTEND/dist
