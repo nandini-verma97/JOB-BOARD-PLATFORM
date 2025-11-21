@@ -22,19 +22,21 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./client
 
       - name: Build app
         run: npm run build --if-present
+        working-directory: ./client
 
       - name: Run tests
         run: npm test --if-present
+        working-directory: ./client
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            .   # include all files, or you can specify ./build if using a build folder
+          path: ./client/build   # upload build folder only
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,7 +52,8 @@ jobs:
           name: node-app
 
       - name: Zip files for deployment
-        run: zip -r app.zip . 
+        run: zip -r app.zip ./*
+        working-directory: ./client/build
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -65,4 +68,4 @@ jobs:
         with:
           app-name: 'JobFind'
           slot-name: 'Production'
-          package: app.zip
+          package: ./app.zip
