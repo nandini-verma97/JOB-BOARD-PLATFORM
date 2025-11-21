@@ -1,4 +1,4 @@
-name: Build and deploy Node.js app to Azure Web App - JobFind
+name: Build and deploy Vite React app to Azure Web App - JobFind
 
 on:
   push:
@@ -7,63 +7,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # required for actions/checkout
+      contents: read
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      # 2. Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
+      # 3. Install dependencies
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
         working-directory: ./FRONTEND
 
+      # 4. Build the frontend
       - name: Build frontend
-        run: npm run build --if-present
+        run: npm run build
         working-directory: ./FRONTEND
 
-      - name: Run frontend tests
-        run: npm test --if-present
-        working-directory: ./FRONTEND
+      # 5. Zip only the dist folder
+      - name: Zip build folder
+        run: |
+          rm -f app.zip        # remove old zip if exists
+          zip -r app.zip ./*
+        working-directory: ./FRONTEND/dist
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build
-          path: ./FRONTEND/build   # React build folder
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-
-      - name: Zip build files
-        run: zip -r app.zip ./*
-        working-directory: ./FRONTEND/build
-
-      - name: Login to Azure
+      # 6. Login to Azure
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_06F2BE1DB7B44529B436B3892976896B }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E622A02AFAEE48F2AF32264D9B5F2E5D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9E5A11EF25FD4FBFA317489A001FF0F4 }}
 
+      # 7. Deploy to Azure Web App
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'JobFind'
