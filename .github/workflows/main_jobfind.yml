@@ -1,4 +1,4 @@
-name: Build and deploy Vite React app to Azure Web App - JobFind
+name: Deploy Full App to Azure Web App - JobFind
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
       id-token: write
 
     steps:
-      # 1. Checkout repository
+      # 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '22.x'
 
-      # 3. Install dependencies
+      # 3. Install frontend dependencies
       - name: Install frontend dependencies
         run: npm ci
         working-directory: ./FRONTEND
@@ -34,7 +34,19 @@ jobs:
         run: npm run build
         working-directory: ./FRONTEND
 
-      # 5. Login to Azure
+      # 5. Copy frontend build into backend folder
+      - name: Copy frontend build into backend
+        run: |
+          rm -rf BACKEND/frontend
+          mkdir -p BACKEND/frontend
+          cp -r FRONTEND/dist/* BACKEND/frontend/
+
+      # 6. Install backend dependencies
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./BACKEND
+
+      # 7. Login to Azure
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -42,10 +54,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E622A02AFAEE48F2AF32264D9B5F2E5D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9E5A11EF25FD4FBFA317489A001FF0F4 }}
 
-      # 6. Deploy dist folder directly to Azure
+      # 8. Deploy backend (with frontend) to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'JobFind'
           slot-name: 'Production'
-          package: ./FRONTEND/dist
+          package: ./BACKEND
